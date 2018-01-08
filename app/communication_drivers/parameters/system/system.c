@@ -135,8 +135,6 @@ void system_init(void)
 	flash_mem_init();
 
 	dcdc_pwr_ctrl(true);
-	// Não necessita da configuração da malha de controle, o dsp ja possui os dados
-	//CtrllawInit();
 
 	//init_display();
 
@@ -146,7 +144,7 @@ void system_init(void)
 
 	if(HARDWARE_VERSION == 0x21) init_usb_to_serial();
 
-	//init_can_bkp();
+	init_can_bkp();
 
 	//BSMPInit();
 

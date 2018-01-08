@@ -122,11 +122,11 @@ TaskCheck(void)
     /**********************************************
      * TODO: Process CAN message
      * *******************************************/
-    //else if(PROCESS_CAN_MESS)
-    //{
-    //  PROCESS_CAN_MESS = 0;
-    //  can_check();
-    //}
+    else if(PROCESS_CAN_MESS)
+    {
+        PROCESS_CAN_MESS = 0;
+        can_check();
+    }
 
 	else if(SAMPLE_ADCP_REQUEST)
 	{
