@@ -144,7 +144,7 @@ void enable_peripherals(void)
     if(HARDWARE_VERSION == 0x21) SysCtlPeripheralEnable(FT230_SYSCTL);
 
     /***************************************************************************
-     * Enable clock for onboard I2C
+     * Enable clock for onboard and offboard I2C
      **************************************************************************/
     SysCtlPeripheralEnable(I2C_ONBOARD_SYSCTL);
     SysCtlPeripheralEnable(I2C_OFFBOARD_ISO_SYSCTL);

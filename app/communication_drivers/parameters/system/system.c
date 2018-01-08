@@ -130,7 +130,8 @@ void system_config(void)
 void system_init(void)
 {
 
-    init_i2c_offboard_isolated();
+    //init_i2c_offboard_isolated();
+    init_i2c_slave_offboard_isolated();
 
 	flash_mem_init();
 
@@ -166,7 +167,7 @@ void system_init(void)
 
 	//SdramInit();
 
-	init_i2c_offboard_external_devices();
+	//init_i2c_offboard_external_devices();
 
 	global_timer_init();
 

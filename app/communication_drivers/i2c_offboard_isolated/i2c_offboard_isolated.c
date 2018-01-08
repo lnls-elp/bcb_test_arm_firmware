@@ -42,6 +42,13 @@
 
 #define I2CWhileMasterBusy while (I2CMasterBusy(I2C_OFFBOARD_ISO_MASTER_BASE)) {}
 
+//*****************************************************************************
+//
+// Global variable to hold the I2C data that has been received.
+//
+//*****************************************************************************
+static uint32_t g_ui32DataRx;
+
 void read_i2c_offboard_isolated(uint8_t SLAVE_ADDR, uint8_t TYPE_REGISTER_ADDR, uint8_t MESSAGE_SIZE, uint8_t *data)
 {
 
@@ -98,6 +105,22 @@ void write_i2c_offboard_isolated(uint8_t SLAVE_ADDR, uint8_t MESSAGE_SIZE, uint8
 	}
 }
 
+void isr_i2c_slave_offboard_isolated(void)
+{
+
+    //
+    // Clear the I2C0 interrupt flag.
+    //
+    I2CSlaveIntClearEx(I2C_OFFBOARD_ISO_SLAVE_BASE, I2C_SLAVE_INT_DATA);
+
+    //
+    // Read the data from the slave.
+    //
+    g_ui32DataRx = I2CSlaveDataGet(I2C_OFFBOARD_ISO_SLAVE_BASE);
+
+    I2CSlaveDataPut(I2C_OFFBOARD_ISO_SLAVE_BASE, (unsigned char) g_ui32DataRx);
+}
+
 void init_i2c_offboard_isolated(void)
 {
 	// I2C0 configuration (EEPROM memory, IO expander e Temperature sensor.)
@@ -109,5 +132,38 @@ void init_i2c_offboard_isolated(void)
 	I2CMasterEnable(I2C_OFFBOARD_ISO_MASTER_BASE);
 
 }
+
+void init_i2c_slave_offboard_isolated(void)
+{
+    //
+    // Set the slave address to SLAVE_ADDRESS
+    //
+    I2CSlaveInit(I2C_OFFBOARD_ISO_SLAVE_BASE, SLAVE_ADDRESS);
+
+    //
+    // Register ISR for I2C slave handler
+    //
+    I2CIntRegister(I2C_OFFBOARD_ISO_SLAVE_BASE, isr_i2c_slave_offboard_isolated);
+
+    //
+    // Configure and turn on the I2C1 slave interrupt.  The I2CSlaveIntEnableEx()
+    // gives you the ability to only enable specific interrupts.  For this case
+    // we are only interrupting when the slave device receives data.
+    //
+    I2CSlaveIntEnableEx(I2C_OFFBOARD_ISO_SLAVE_BASE, I2C_SLAVE_INT_DATA);
+
+    //
+    // Enable the I2C1 slave module.
+    //
+    I2CSlaveEnable(I2C_OFFBOARD_ISO_SLAVE_BASE);
+
+    //
+    // Enable the I2C1 interrupt on the processor (NVIC).
+    //
+    IntEnable(INT_I2C1);
+}
+
+
+
 
 

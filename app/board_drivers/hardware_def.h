@@ -85,6 +85,7 @@
  * Macros for offboard I2C isolated
  *****************************************************************************/
 #define	I2C_OFFBOARD_ISO_MASTER_BASE	I2C1_MASTER_BASE
+#define I2C_OFFBOARD_ISO_SLAVE_BASE     I2C1_SLAVE_BASE
 #define I2C_OFFBOARD_ISO_BASE			GPIO_PORTP_BASE
 #define I2C_OFFBOARD_ISO_PINS 			(GPIO_PIN_0 | GPIO_PIN_1)
 #define I2C_OFFBOARD_ISO_SCL			GPIO_PP0_I2C1SCL
