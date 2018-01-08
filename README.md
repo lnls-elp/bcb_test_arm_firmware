@@ -1,6 +1,6 @@
-# Firmware for ARM Core of DRS-UDC board {#mainpage}
+# Firmware for ARM Core of BCB board testbench {#mainpage}
 
-Firmware for ARM core from TI F28M36 microcontroller of DRS-UDC v2.1 boards.
+Firmware for ARM core from TI F28M36 microcontroller of DRS-UDC v2.1 board used on BCB (Backplane Communication Board) board testbench.
 
 It is required to install the following modules in the same parent directory from this project:
 
