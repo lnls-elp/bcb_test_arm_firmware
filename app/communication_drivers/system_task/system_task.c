@@ -137,7 +137,7 @@ TaskCheck(void)
 	else if(PROCESS_RS485_MESS)
 	{
 		PROCESS_RS485_MESS = 0;
-		rs485_process_data();
+		//rs485_process_data();
 	}
 
 	else if(PROCESS_ETH_MESS)
@@ -184,6 +184,7 @@ TaskCheck(void)
 
 		// TODO: Fix it
 		//switch(g_ipc_mtoc[0].PSModule.Model.u16)
+#if 0
 		switch(g_ipc_mtoc.ps_module[g_current_ps_id].ps_status.bit.model)
 		{
 			case FBP:
@@ -193,6 +194,7 @@ TaskCheck(void)
                 power_supply_4_temp_read();
                 break;
 		}
+#endif
 	}
 
 	else if(EEPROM_WRITE_REQUEST)

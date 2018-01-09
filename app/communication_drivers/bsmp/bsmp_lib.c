@@ -100,14 +100,23 @@ static struct bsmp_func set_bcb_pof_tx_t = {
 //*****************************************************************************
 uint8_t read_bcb_pof_rx (uint8_t *input, uint8_t *output)
 {
-    static uint8_t rx_status;
+    static uint8_t rx_status, pin_stat;
 
     rx_status = 0;
 
-    rx_status |= GPIOPinRead(INT_ARM_BASE, INT_ARM_PIN) >> 4;
+    /*rx_status |= GPIOPinRead(INT_ARM_BASE, INT_ARM_PIN) >> 4;
     rx_status |= GPIOPinRead(INT_C28_BASE, INT_C28_PIN) >> 4;
     rx_status |= GPIOPinRead(EPWMSYNC_BASE, EPWMSYNCI_PIN) >> 4;
-    rx_status |= GPIOPinRead(INT_GENERAL_BASE, INT_GENERAL_PIN) >> 4;
+    rx_status |= GPIOPinRead(INT_GENERAL_BASE, INT_GENERAL_PIN) >> 4;*/
+
+    pin_stat = GPIOPinRead(INT_ARM_BASE, INT_ARM_PIN) >> 4;
+    rx_status |= pin_stat;
+    pin_stat = GPIOPinRead(INT_C28_BASE, INT_C28_PIN) >> 4;
+    rx_status |= pin_stat;
+    pin_stat = GPIOPinRead(EPWMSYNC_BASE, EPWMSYNCI_PIN) >> 4;
+    rx_status |= pin_stat;
+    pin_stat = GPIOPinRead(INT_GENERAL_BASE, INT_GENERAL_PIN) >> 4;
+    rx_status |= pin_stat;
 
     *output = rx_status;
     return 0;

@@ -1,21 +1,8 @@
-/******************************************************************************
- * Copyright (C) 2017 by LNLS - Brazilian Synchrotron Light Laboratory
+/*
+ * usb_to_serial.h
  *
- * Redistribution, modification or use of this software in source or binary
- * forms is permitted as long as the files maintain this copyright. LNLS and
- * the Brazilian Center for Research in Energy and Materials (CNPEM) are not
- * liable for any misuse of this material.
- *
- *****************************************************************************/
-
-/**
- * @file usb_to_serial.h
- * @brief USB to Serial module.
- *
- * @author joao.rosa
- *
- * @date 23/01/2017
- *
+ *  Created on: 23/01/2017
+ *      Author: joao.rosa
  */
 
 #include <stdint.h>
@@ -23,8 +10,13 @@
 #ifndef USB_TO_SERIAL_USB_TO_SERIAL_H_
 #define USB_TO_SERIAL_USB_TO_SERIAL_H_
 
-extern void init_usb_to_serial(void);
+extern void init_usb2serial(void);
 
+extern void usb2serial_process_data(void);
+
+extern uint8_t get_usb2serial_address(void);
+
+extern void set_usb2serial_address(uint8_t addr);
 
 
 #endif /* USB_TO_SERIAL_USB_TO_SERIAL_H_ */

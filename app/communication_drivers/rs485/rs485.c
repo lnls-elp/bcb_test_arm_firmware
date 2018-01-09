@@ -55,8 +55,8 @@
 
 //*****************************************************************************
 
-#pragma DATA_SECTION(recv_buffer, "SERIALBUFFER")
-#pragma DATA_SECTION(send_buffer, "SERIALBUFFER")
+//#pragma DATA_SECTION(recv_buffer, "SERIALBUFFER")
+//#pragma DATA_SECTION(send_buffer, "SERIALBUFFER")
 
 //*****************************************************************************
 
@@ -134,7 +134,7 @@ void isr_rs485(void)
                 {
 
                     recv_buffer.data[recv_buffer.index] =
-                            (uint8_t)UARTCharGet(RS485_UART_BASE);;
+                            (uint8_t)UARTCharGet(RS485_UART_BASE);
                     recv_buffer.csum += recv_buffer.data[recv_buffer.index++];
 
                     time_out = 0;

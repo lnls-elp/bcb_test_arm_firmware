@@ -41,9 +41,9 @@
 #include "communication_drivers/ihm/ihm.h"
 #include "communication_drivers/bsmp/bsmp_lib.h"
 #include "communication_drivers/ipc/ipc_lib.h"
-#include "communication_drivers/usb_to_serial/usb_to_serial.h"
 #include "communication_drivers/epi/sdram_mem.h"
 #include "communication_drivers/control/control.h"
+#include "communication_drivers/usb_to_serial/usb_to_serial.h"
 
 #include "ethernet_uip.h"
 
@@ -139,11 +139,10 @@ void system_init(void)
 
 	//init_display();
 
-	init_rs485();
+	//init_rs485();
+	init_usb2serial();
 
 	init_rs485_bkp();
-
-	if(HARDWARE_VERSION == 0x21) init_usb_to_serial();
 
 	init_can_bkp();
 
