@@ -66,8 +66,8 @@
 #define SERIAL_MASTER_ADDRESS   0   // Master Address
 #define SERIAL_BUF_SIZE         (SERIAL_HEADER+3+3+16834+SERIAL_CSUM)
 
-#define HIGH_SPEED_BAUD         6000000
-//#define LOW_SPEED_BAUD          115200
+//#define HIGH_SPEED_BAUD         6000000
+#define LOW_SPEED_BAUD          115200
 
 static uint8_t SERIAL_CH_0_ADDRESS = 1;
 static uint8_t SERIAL_CH_1_ADDRESS = 2;
@@ -374,7 +374,7 @@ void config_rs485(uint32_t BaudRate)
 void init_rs485(void)
 {
 
-	if(HARDWARE_VERSION == 0x21) rs485_term_ctrl(0);
+	if(HARDWARE_VERSION == 0x21) rs485_term_ctrl(1);
 
 	// Load RS485 address from EEPROM and config it
 	//SetRS485Address(EepromReadRs485Add());

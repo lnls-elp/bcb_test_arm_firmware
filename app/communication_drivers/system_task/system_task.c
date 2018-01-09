@@ -209,7 +209,7 @@ TaskCheck(void)
         {
 	        led_sts_ctrl(0);
             led_itlk_ctrl(0);
-            sound_sel_ctrl(0);
+            //sound_sel_ctrl(0);
             LedCtrl = 0;
         }
         else

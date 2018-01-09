@@ -64,7 +64,7 @@ uint8_t clear_bcb_pof_tx (uint8_t *input, uint8_t *output)
     GPIOPinWrite(PWM_9TO16_BASE, 0x00000FF, OFF);
     GPIOPinWrite(EPWMSYNC_BASE, EPWMSYNCO_PIN, OFF);
 
-    *output = 1;
+    *output = 0;
     return *output;
 }
 
@@ -84,7 +84,7 @@ uint8_t set_bcb_pof_tx (uint8_t *input, uint8_t *output)
     GPIOPinWrite(PWM_9TO16_BASE, 0x00000FF, ON);
     GPIOPinWrite(EPWMSYNC_BASE, EPWMSYNCO_PIN, ON);
 
-    *output = 1;
+    *output = 0;
     return *output;
 }
 
@@ -110,7 +110,7 @@ uint8_t read_bcb_pof_rx (uint8_t *input, uint8_t *output)
     rx_status |= GPIOPinRead(INT_GENERAL_BASE, INT_GENERAL_PIN) >> 4;
 
     *output = rx_status;
-    return *output;
+    return 0;
 }
 
 static struct bsmp_func read_bcb_pof_rx_t = {
@@ -119,6 +119,37 @@ static struct bsmp_func read_bcb_pof_rx_t = {
     .info.output_size = 1,       // POF receivers status
 };
 
+//*****************************************************************************
+//                          Enable Buzzer
+//*****************************************************************************
+uint8_t enable_buzzer (uint8_t *input, uint8_t *output)
+{
+    sound_sel_ctrl(1);
+    *output = 0;
+    return *output;
+}
+
+static struct bsmp_func enable_buzzer_t = {
+    .func_p           = enable_buzzer,
+    .info.input_size  = 0,       // Nothing is read from the input parameter
+    .info.output_size = 1,       // command_ack
+};
+
+//*****************************************************************************
+//                          Disable Buzzer
+//*****************************************************************************
+uint8_t disable_buzzer (uint8_t *input, uint8_t *output)
+{
+    sound_sel_ctrl(0);
+    *output = 0;
+    return *output;
+}
+
+static struct bsmp_func disable_buzzer_t = {
+    .func_p           = disable_buzzer,
+    .info.input_size  = 0,       // Nothing is read from the input parameter
+    .info.output_size = 1,       // command_ack
+};
 
 //*****************************************************************************
 //                          DUMMY Variables Memory
@@ -152,9 +183,11 @@ void bsmp_init(uint8_t server)
     //*************************************************************************
     //                      BSMP Function Register
     //*************************************************************************
-    bsmp_register_function(&bsmp[server], &clear_bcb_pof_tx_t);   // ID 0
-    bsmp_register_function(&bsmp[server], &set_bcb_pof_tx_t);     // ID 1
-    bsmp_register_function(&bsmp[server], &read_bcb_pof_rx_t);    // ID 2
+    bsmp_register_function(&bsmp[server], &clear_bcb_pof_tx_t);     // ID 0
+    bsmp_register_function(&bsmp[server], &set_bcb_pof_tx_t);       // ID 1
+    bsmp_register_function(&bsmp[server], &read_bcb_pof_rx_t);      // ID 2
+    bsmp_register_function(&bsmp[server], &enable_buzzer_t);        // ID 3
+    bsmp_register_function(&bsmp[server], &disable_buzzer_t);       // ID 4
 
     //*************************************************************************
     //                      BSMP Variable Register

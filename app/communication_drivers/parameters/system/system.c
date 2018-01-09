@@ -147,7 +147,7 @@ void system_init(void)
 
 	init_can_bkp();
 
-	//BSMPInit();
+	bsmp_init(0);
 
 	ethernet_init();
 
