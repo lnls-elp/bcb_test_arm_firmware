@@ -23,6 +23,7 @@
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "inc/hw_sysctl.h"
 #include "inc/hw_ints.h"
@@ -55,8 +56,8 @@
 
 //*****************************************************************************
 
-//#pragma DATA_SECTION(recv_buffer, "SERIALBUFFER")
-//#pragma DATA_SECTION(send_buffer, "SERIALBUFFER")
+#pragma DATA_SECTION(recv_buffer, "SERIALBUFFER")
+#pragma DATA_SECTION(send_buffer, "SERIALBUFFER")
 
 //*****************************************************************************
 
@@ -69,10 +70,17 @@
 //#define HIGH_SPEED_BAUD         6000000
 #define LOW_SPEED_BAUD          115200
 
+#if UDC_SELECT
 static uint8_t SERIAL_CH_0_ADDRESS = 1;
-static uint8_t SERIAL_CH_1_ADDRESS = 2;
+static uint8_t SERIAL_CH_1_ADDRESS = 5;
 static uint8_t SERIAL_CH_2_ADDRESS = 3;
 static uint8_t SERIAL_CH_3_ADDRESS = 4;
+#else
+static uint8_t SERIAL_CH_0_ADDRESS = 2;
+static uint8_t SERIAL_CH_1_ADDRESS = 6;
+static uint8_t SERIAL_CH_2_ADDRESS = 7;
+static uint8_t SERIAL_CH_3_ADDRESS = 8;
+#endif
 
 static uint8_t BCAST_ADDRESS  = 255; // Broadcast Address
 
@@ -103,27 +111,27 @@ static uint8_t MessageOverflow = 0;
 
 void isr_rs485(void)
 {
-	//uint32_t lChar;
-	uint16_t sCarga;
-	//uint8_t ucChar;
-	uint32_t ulStatus;
+    //uint32_t lChar;
+    uint16_t sCarga;
+    //uint8_t ucChar;
+    uint32_t ulStatus;
 
-	uint8_t time_out = 0;
+    uint8_t time_out = 0;
 
-	// Get the interrrupt status.
-	ulStatus = UARTIntStatus(RS485_UART_BASE, true);
+    // Get the interrrupt status.
+    ulStatus = UARTIntStatus(RS485_UART_BASE, true);
 
-	// Clear the asserted interrupts.
-	UARTIntClear(RS485_UART_BASE, ulStatus);
+    // Clear the asserted interrupts.
+    UARTIntClear(RS485_UART_BASE, ulStatus);
 
-	if(UARTRxErrorGet(RS485_UART_BASE)) UARTRxErrorClear(RS485_UART_BASE);
+    if(UARTRxErrorGet(RS485_UART_BASE)) UARTRxErrorClear(RS485_UART_BASE);
 
-	// Receive Interrupt Mask
-	if(UART_INT_RX == ulStatus || UART_INT_RT == ulStatus)
-	{
+    // Receive Interrupt Mask
+    if(UART_INT_RX == ulStatus || UART_INT_RT == ulStatus)
+    {
 
-	    // GPIO1 turn on
-	    //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_7, ON);
+        // GPIO1 turn on
+        //GPIOPinWrite(GPIO_PORTP_BASE, GPIO_PIN_7, ON);
 
         #ifdef LOW_SPEED_BAUD
             for(time_out = 0; time_out < 15; time_out++)
@@ -193,68 +201,68 @@ void isr_rs485(void)
                 send_buffer.csum  = 0;
             }
     #endif
-	}
+    }
 
     // Transmit Interrupt Mask
-	else if(UART_INT_TX == ulStatus) // TX interrupt
-	{
-		while(UARTBusy(RS485_RD_BASE));
+    else if(UART_INT_TX == ulStatus) // TX interrupt
+    {
+        while(UARTBusy(RS485_RD_BASE));
 
-		// Put IC in the reception mode
-		GPIOPinWrite(RS485_RD_BASE, RS485_RD_PIN, OFF);
+        // Put IC in the reception mode
+        GPIOPinWrite(RS485_RD_BASE, RS485_RD_PIN, OFF);
 
-	}
+    }
 }
 
 void rs485_tx_handler(void)
 {
-	unsigned int i;
+    unsigned int i;
 
-	// Prepare answer
-	send_buffer.data[0] = SERIAL_MASTER_ADDRESS;
-	send_buffer.csum    = 0;
+    // Prepare answer
+    send_buffer.data[0] = SERIAL_MASTER_ADDRESS;
+    send_buffer.csum    = 0;
 
-	// Send packet
+    // Send packet
 
-	// Put IC in the transmition mode
-	GPIOPinWrite(RS485_RD_BASE, RS485_RD_PIN, ON);
+    // Put IC in the transmition mode
+    GPIOPinWrite(RS485_RD_BASE, RS485_RD_PIN, ON);
 
-	for(i = 0; i < send_packet.len + SERIAL_HEADER; ++i)
-	{
-		// Wait until have space in the TX buffer
-		while(!UARTSpaceAvail(RS485_UART_BASE));
-		// CheckSum calc
-		send_buffer.csum -= send_buffer.data[i];
-		// Send Byte
-		UARTCharPut(RS485_UART_BASE, send_buffer.data[i]);
-	}
-	// Wait until have space in the TX buffer
-	while(!UARTSpaceAvail(RS485_UART_BASE));
-	// Send Byte
-	UARTCharPut(RS485_UART_BASE, send_buffer.csum);
+    for(i = 0; i < send_packet.len + SERIAL_HEADER; ++i)
+    {
+        // Wait until have space in the TX buffer
+        while(!UARTSpaceAvail(RS485_UART_BASE));
+        // CheckSum calc
+        send_buffer.csum -= send_buffer.data[i];
+        // Send Byte
+        UARTCharPut(RS485_UART_BASE, send_buffer.data[i]);
+    }
+    // Wait until have space in the TX buffer
+    while(!UARTSpaceAvail(RS485_UART_BASE));
+    // Send Byte
+    UARTCharPut(RS485_UART_BASE, send_buffer.csum);
 
 }
 
 void rs485_process_data(void)
 {
-	// Received less than HEADER + CSUM bytes
-	if(recv_buffer.index < (SERIAL_HEADER + SERIAL_CSUM))
-		goto exit;
+    // Received less than HEADER + CSUM bytes
+    if(recv_buffer.index < (SERIAL_HEADER + SERIAL_CSUM))
+        goto exit;
 
-	// Checksum is not zero
-	if(recv_buffer.csum)
-		goto exit;
+    // Checksum is not zero
+    if(recv_buffer.csum)
+        goto exit;
 
-	// Packet is not for me
-	if(recv_buffer.data[0] != SERIAL_CH_1_ADDRESS && recv_buffer.data[0] !=
-	        SERIAL_CH_2_ADDRESS && recv_buffer.data[0] != SERIAL_CH_3_ADDRESS
-	        && recv_buffer.data[0] != SERIAL_CH_0_ADDRESS &&
-	        recv_buffer.data[0] != BCAST_ADDRESS)
-	    goto exit;
+    // Packet is not for me
+    if(recv_buffer.data[0] != SERIAL_CH_1_ADDRESS && recv_buffer.data[0] !=
+            SERIAL_CH_2_ADDRESS && recv_buffer.data[0] != SERIAL_CH_3_ADDRESS
+            && recv_buffer.data[0] != SERIAL_CH_0_ADDRESS &&
+            recv_buffer.data[0] != BCAST_ADDRESS)
+        goto exit;
 
-	//GPIOPinWrite(EEPROM_WP_BASE, EEPROM_WP_PIN, ON);
+    //GPIOPinWrite(EEPROM_WP_BASE, EEPROM_WP_PIN, ON);
 
-	recv_packet.len = recv_buffer.index - SERIAL_HEADER - SERIAL_CSUM;
+    recv_packet.len = recv_buffer.index - SERIAL_HEADER - SERIAL_CSUM;
 
 
     if (recv_buffer.data[0] == SERIAL_CH_0_ADDRESS)
@@ -265,36 +273,36 @@ void rs485_process_data(void)
     }
 
     else if (recv_buffer.data[0] == SERIAL_CH_1_ADDRESS)
-	{
+    {
         g_current_ps_id = 1;
         g_ipc_mtoc.msg_id = 1;
-	    BSMPprocess(&recv_packet, &send_packet, 1);
-	}
+        BSMPprocess(&recv_packet, &send_packet, 1);
+    }
 
-	else if (recv_buffer.data[0] == SERIAL_CH_2_ADDRESS)
+    else if (recv_buffer.data[0] == SERIAL_CH_2_ADDRESS)
     {
         g_current_ps_id = 2;
         g_ipc_mtoc.msg_id = 2;
         BSMPprocess(&recv_packet, &send_packet, 2);
     }
 
-	else if (recv_buffer.data[0] == SERIAL_CH_3_ADDRESS)
+    else if (recv_buffer.data[0] == SERIAL_CH_3_ADDRESS)
     {
         g_current_ps_id = 3;
         g_ipc_mtoc.msg_id = 3;
         BSMPprocess(&recv_packet, &send_packet, 3);
     }
 
-	//GPIOPinWrite(DEBUG_BASE, DEBUG_PIN, OFF);
+    //GPIOPinWrite(DEBUG_BASE, DEBUG_PIN, OFF);
 
-	//rs485_bkp_tx_handler();
-	rs485_tx_handler();
+    //rs485_bkp_tx_handler();
+    rs485_tx_handler();
 
-	exit:
-	recv_buffer.index = 0;
-	recv_buffer.csum  = 0;
-	send_buffer.index = 0;
-	send_buffer.csum  = 0;
+    exit:
+    recv_buffer.index = 0;
+    recv_buffer.csum  = 0;
+    send_buffer.index = 0;
+    send_buffer.csum  = 0;
 
 }
 
@@ -337,7 +345,7 @@ void set_rs485_ch_0_address(uint8_t addr)
 //uint8_t
 //ReadRS485Address(void)
 //{
-//	return SERIAL_ADDRESS;
+//  return SERIAL_ADDRESS;
 //}
 
 uint8_t get_rs485_ch_1_address()
@@ -362,50 +370,50 @@ uint8_t get_rs485_ch_0_address()
 
 void config_rs485(uint32_t BaudRate)
 {
-	// Baudrate limit
-	if(BaudRate > 6000000) BaudRate = 6000000;
+    // Baudrate limit
+    if(BaudRate > 6000000) BaudRate = 6000000;
 
-	// RS485 serial configuration, operation mode 8-N-1
-	UARTConfigSetExpClk(RS485_UART_BASE, SysCtlClockGet(SYSTEM_CLOCK_SPEED), BaudRate,
-						(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-						UART_CONFIG_PAR_NONE));
+    // RS485 serial configuration, operation mode 8-N-1
+    UARTConfigSetExpClk(RS485_UART_BASE, SysCtlClockGet(SYSTEM_CLOCK_SPEED), BaudRate,
+                        (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                        UART_CONFIG_PAR_NONE));
 }
 
 void init_rs485(void)
 {
 
-	if(HARDWARE_VERSION == 0x21) rs485_term_ctrl(1);
+    if(HARDWARE_VERSION == 0x21) rs485_term_ctrl(1);
 
-	// Load RS485 address from EEPROM and config it
-	//SetRS485Address(EepromReadRs485Add());
+    // Load RS485 address from EEPROM and config it
+    //SetRS485Address(EepromReadRs485Add());
     //set_rs485_ch_0_address(eeprom_read_rs485_add(0));
-	//set_rs485_ch_1_address(eeprom_read_rs485_add(1));
-	//set_rs485_ch_2_address(eeprom_read_rs485_add(2));
-	//set_rs485_ch_3_address(eeprom_read_rs485_add(3));
+    //set_rs485_ch_1_address(eeprom_read_rs485_add(1));
+    //set_rs485_ch_2_address(eeprom_read_rs485_add(2));
+    //set_rs485_ch_3_address(eeprom_read_rs485_add(3));
 
 
     #ifdef HIGH_SPEED_BAUD
-	    config_rs485(HIGH_SPEED_BAUD);
+        config_rs485(HIGH_SPEED_BAUD);
     #elif LOW_SPEED_BAUD
-	    config_rs485(LOW_SPEED_BAUD);
+        config_rs485(LOW_SPEED_BAUD);
     #endif
 
-	UARTFIFOEnable(RS485_UART_BASE);
-	UARTFIFOLevelSet(RS485_UART_BASE,UART_FIFO_TX1_8,UART_FIFO_RX1_8);
+    UARTFIFOEnable(RS485_UART_BASE);
+    UARTFIFOLevelSet(RS485_UART_BASE,UART_FIFO_TX1_8,UART_FIFO_RX1_8);
 
-	//Habilita interrupÃ§Ã£o pela UART1 (RS-485)
-	IntRegister(RS485_INT, isr_rs485);
-	UARTIntEnable(RS485_UART_BASE, UART_INT_RX | UART_INT_TX | UART_INT_RT);
-	//UARTIntEnable(RS485_UART_BASE, UART_INT_RX | UART_INT_RT);
+    //Habilita interrupção pela UART1 (RS-485)
+    IntRegister(RS485_INT, isr_rs485);
+    UARTIntEnable(RS485_UART_BASE, UART_INT_RX | UART_INT_TX | UART_INT_RT);
+    //UARTIntEnable(RS485_UART_BASE, UART_INT_RX | UART_INT_RT);
 
-	//EOT - End of Transmission
-	UARTTxIntModeSet(RS485_UART_BASE, UART_TXINT_MODE_EOT);
+    //EOT - End of Transmission
+    UARTTxIntModeSet(RS485_UART_BASE, UART_TXINT_MODE_EOT);
 
-	//Seta nÃ­veis de prioridade entre as interrupÃ§Ãµes
-	IntPrioritySet(RS485_INT, 0);
+    //Seta níveis de prioridade entre as interrupções
+    IntPrioritySet(RS485_INT, 0);
 
-	// Enable the UART
-	UARTEnable(RS485_UART_BASE);
+    // Enable the UART
+    UARTEnable(RS485_UART_BASE);
 
-	IntEnable(RS485_INT);
+    IntEnable(RS485_INT);
 }

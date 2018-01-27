@@ -47,6 +47,7 @@
 
 #include "ethernet_uip.h"
 
+#include "hardware_def.h"
 #include "system.h"
 
 /*
@@ -130,8 +131,11 @@ void system_config(void)
 void system_init(void)
 {
 
-    //init_i2c_offboard_isolated();
+    #if UDC_SELECT
     init_i2c_slave_offboard_isolated();
+    #else
+    init_i2c_offboard_isolated();
+    #endif
 
 	flash_mem_init();
 
@@ -139,8 +143,8 @@ void system_init(void)
 
 	//init_display();
 
-	//init_rs485();
-	init_usb2serial();
+	init_rs485();
+	//init_usb2serial();
 
 	init_rs485_bkp();
 

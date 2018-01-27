@@ -118,7 +118,21 @@ void isr_i2c_slave_offboard_isolated(void)
     //
     g_ui32DataRx = I2CSlaveDataGet(I2C_OFFBOARD_ISO_SLAVE_BASE);
 
-    I2CSlaveDataPut(I2C_OFFBOARD_ISO_SLAVE_BASE, (unsigned char) g_ui32DataRx);
+    if (g_ui32DataRx == SLAVE_READ_REG_ADD) {
+        I2CSlaveDataPut(I2C_OFFBOARD_ISO_SLAVE_BASE, 0xAA);
+    }
+    else
+    {
+        I2CSlaveDataPut(I2C_OFFBOARD_ISO_SLAVE_BASE, 0);
+    }
+}
+
+uint8_t get_i2c_message()
+{
+    uint8_t data[2];
+    data[0] = 0x5B;
+    read_i2c_offboard_isolated(SLAVE_ADDRESS, SINGLE_ADDRESS, 2, data);
+    return data[1];
 }
 
 void init_i2c_offboard_isolated(void)

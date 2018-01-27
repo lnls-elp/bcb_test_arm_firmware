@@ -38,10 +38,9 @@
 #include "driverlib/sysctl.h"
 #include "driverlib/gpio.h"
 
-//#include "communication_drivers/shared_memory/structs.h"
 #include "communication_drivers/ipc/ipc_lib.h"
 #include "communication_drivers/system_task/system_task.h"
-#include "board_drivers/hardware_def.h"
+#include "hardware_def.h"
 #include "can_bkp.h"
 
 
@@ -91,13 +90,15 @@ volatile bool g_bRXFlag = 0;
 //*****************************************************************************
 volatile bool g_bErrFlag = 0;
 
+volatile uint8_t data_echo_can;
+
 //Rx
-tCANMsgObject sCANMessage;
-uint8_t pui8MsgData[8];
+tCANMsgObject sCANMessageRx;
+uint8_t pui8MsgDataRx[1];
 
 //Tx
 tCANMsgObject sCANMessageTx;
-uint8_t pui8MsgDataTx[8];
+uint8_t pui8MsgDataTx[1];
 
 
 //*****************************************************************************
@@ -152,8 +153,14 @@ void can_int_handler(void)
         //
         g_bRXFlag = 1;
 
+        #if UDC_SELECT
         // Indicate new message that needs to be processed
         TaskSetNew(PROCESS_CAN_MESSAGE);
+        #else
+        sCANMessageRx.pucMsgData = pui8MsgDataRx;
+        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
+        data_echo_can = pui8MsgDataRx[0];
+        #endif
 
         //
         // Since a message was received, clear any error flags.
@@ -173,9 +180,38 @@ void can_int_handler(void)
     }
 }
 
+#if UDC_SELECT
 void can_check(void)
 {
-    uint8_t i;
+    //
+    // If the flag for message object 1 is set, that means that the RX
+    // interrupt occurred and there is a message ready to be read from
+    // this CAN message object.
+    //
+    if(g_bRXFlag)
+    {
+        sCANMessageRx.pucMsgData = pui8MsgDataRx;
+        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
+
+        //  Echo CAN message
+        //for(i = 0; i < 8; i++)
+        //{
+        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
+        //}
+
+        g_bRXFlag = 0;
+
+        SysCtlDelay(10000);
+        pui8MsgDataTx[0] = pui8MsgDataRx[0];
+        sCANMessageTx.pucMsgData = pui8MsgDataTx;
+        CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
+
+    }
+}
+#else
+
+void can_check(void)
+{
 
     //
     // If the flag for message object 1 is set, that means that the RX
@@ -184,20 +220,53 @@ void can_check(void)
     //
     if(g_bRXFlag)
     {
-        sCANMessage.pucMsgData = pui8MsgData;
-        CANMessageGet(CAN0_BASE, 1, &sCANMessage, 0);
+        sCANMessageRx.pucMsgData = pui8MsgDataRx;
+        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
 
         //  Echo CAN message
-        for(i = 0; i < 8; i++)
-        {
-            pui8MsgDataTx[i] = pui8MsgData[i];
-        }
+        //for(i = 0; i < 8; i++)
+        //{
+        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
+        //}
 
-        sCANMessageTx.pucMsgData = pui8MsgDataTx;
-        CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
+        data_echo_can = pui8MsgDataRx[0];
+
+        //sCANMessageTx.pucMsgData = pui8MsgDataTx;
+        //CANMessageSet(CAN0_BASE, 1, &sCANMessageTx, MSG_OBJ_TYPE_TX);
 
         g_bRXFlag = 0;
     }
+}
+#endif
+
+void send_can_message(void)
+{
+    volatile uint32_t timeout = 0;
+
+    pui8MsgDataRx[0] = 0;
+    pui8MsgDataTx[0] = 0xAA;
+    data_echo_can = 0;
+
+    CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
+
+
+    //while ((data_echo_can != 0xAA) && (timeout < 2000000)) {
+        //can_check();
+        //timeout++;
+    //}
+
+    //return data_echo_can;
+}
+
+
+void clear_can_buffer()
+{
+    pui8MsgDataRx[0] = 0;
+}
+
+uint8_t get_can_message()
+{
+    return pui8MsgDataRx[0];
 }
 
 void init_can_bkp(void)
@@ -233,23 +302,25 @@ void init_can_bkp(void)
     // Enable the CAN for operation.
     CANEnable(CAN0_BASE);
 
+    #if UDC_SELECT
     //
     // Initialize a message object to receive CAN messages with ID 0x010.
     // The expected ID must be set along with the mask to indicate that all
     // bits in the ID must match.
     //
-    sCANMessage.ulMsgID = 0x010;
-    sCANMessage.ulMsgIDMask = 0x7FF;
-    sCANMessage.ulFlags = (MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER | MSG_OBJ_FIFO);
-    sCANMessage.ulMsgLen = 8;
-    sCANMessage.pucMsgData = pui8MsgData;
+    sCANMessageRx.ulMsgID = 0x010;
+    sCANMessageRx.ulMsgIDMask = 0x7FF;
+    sCANMessageRx.ulMsgIDMask = 0;
+    sCANMessageRx.ulFlags = (MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER | MSG_OBJ_FIFO);
+    sCANMessageRx.ulMsgLen = sizeof(pui8MsgDataRx);;
+    sCANMessageRx.pucMsgData = pui8MsgDataRx;
 
     //
     // Now load the message object into the CAN peripheral message object 1.
     // Once loaded the CAN will receive any messages with this CAN ID into
     // this message object, and an interrupt will occur.
     //
-    CANMessageSet(CAN0_BASE, 1, &sCANMessage, MSG_OBJ_TYPE_RX);
+    CANMessageSet(CAN0_BASE, 1, &sCANMessageRx, MSG_OBJ_TYPE_RX);
 
     //
     // Initialize message object 1 to be able to send CAN message 1.  This
@@ -259,6 +330,39 @@ void init_can_bkp(void)
     sCANMessageTx.ulMsgID = 0x200;
     sCANMessageTx.ulMsgIDMask = 0;
     sCANMessageTx.ulFlags = (MSG_OBJ_TX_INT_ENABLE | MSG_OBJ_FIFO);
-    sCANMessageTx.ulMsgLen = 8;
+    sCANMessageTx.ulMsgLen = sizeof(pui8MsgDataTx);
     sCANMessageTx.pucMsgData = pui8MsgDataTx;
+    #else
+    //
+    // Initialize a message object to receive CAN messages with ID 0x010.
+    // The expected ID must be set along with the mask to indicate that all
+    // bits in the ID must match.
+    //
+    sCANMessageRx.ulMsgID = 0x200;
+    sCANMessageRx.ulMsgIDMask = 0x7FF;
+    sCANMessageRx.ulMsgIDMask = 0;
+    sCANMessageRx.ulFlags = (MSG_OBJ_RX_INT_ENABLE | MSG_OBJ_USE_ID_FILTER | MSG_OBJ_FIFO);
+    sCANMessageRx.ulMsgLen = sizeof(pui8MsgDataRx);;
+    sCANMessageRx.pucMsgData = pui8MsgDataRx;
+
+    //
+    // Now load the message object into the CAN peripheral message object 1.
+    // Once loaded the CAN will receive any messages with this CAN ID into
+    // this message object, and an interrupt will occur.
+    //
+    CANMessageSet(CAN0_BASE, 1, &sCANMessageRx, MSG_OBJ_TYPE_RX);
+
+    //
+    // Initialize message object 1 to be able to send CAN message 1.  This
+    // message object is not shared so it only needs to be initialized one
+    // time, and can be used for repeatedly sending the same message ID.
+    //
+    sCANMessageTx.ulMsgID = 0x010;
+    sCANMessageTx.ulMsgIDMask = 0;
+    sCANMessageTx.ulFlags = (MSG_OBJ_TX_INT_ENABLE | MSG_OBJ_FIFO);
+    sCANMessageTx.ulMsgLen = sizeof(pui8MsgDataTx);
+    sCANMessageTx.pucMsgData = pui8MsgDataTx;
+    #endif
+
 }
+

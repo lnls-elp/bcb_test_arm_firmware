@@ -72,7 +72,8 @@ extern unsigned long RamfuncsLoadSize;
 
 uint8_t read_rtc, read_rtc_status;
 
-uint8_t read_add_rs485, set_add_rs485, read_add_IP, set_add_IP, read_display_sts, set_display_sts, read_isodcdc_sts, set_isodcdc_sts, read_adcp, read_flash_sn;
+uint8_t read_add_rs485, set_add_rs485, read_add_IP, set_add_IP, read_display_sts,
+        set_display_sts, read_isodcdc_sts, set_isodcdc_sts, read_adcp, read_flash_sn;
 uint8_t add485, stsdisp, stsisodcdc;
 uint32_t addIP;
 

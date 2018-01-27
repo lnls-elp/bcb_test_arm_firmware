@@ -25,5 +25,8 @@
 
 extern void init_can_bkp(void);
 extern void can_check(void);
+extern void send_can_message();
+extern void clear_can_buffer();
+extern uint8_t get_can_message();
 
 #endif /* APP_COMMUNICATION_DRIVERS_CAN_CAN_BKP_H_ */
