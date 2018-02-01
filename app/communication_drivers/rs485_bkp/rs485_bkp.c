@@ -207,12 +207,36 @@ void rs485_bkp_process_data(void)
 
 }
 
+void send_uart_message(void)
+{
+    // Put IC in the transmition mode
+    GPIOPinWrite(RS485_BKP_RD_BASE, RS485_BKP_RD_PIN, ON);
+
+    //for(i = 0; i < send_buffer.index + SERIAL_HEADER; ++i)
+    //{
+        // Wait until have space in the TX buffer
+        while(!UARTSpaceAvail(RS485_BKP_UART_BASE));
+        // CheckSum calc
+        //send_buffer.csum -= send_buffer.data[i];
+        // Send Byte
+        UARTCharPutNonBlocking(RS485_BKP_UART_BASE, 0xAA);
+    //}
+}
+
+uint8_t get_uart_message(void)
+{
+    return 0xAA;
+}
+
 void init_rs485_bkp(void)
 {
 	// Configura UART0 com baud de 8Mbps, operação 8-N-1 devido as limitações do conversor usb/serial controle
-	UARTConfigSetExpClk(RS485_BKP_UART_BASE, SysCtlClockGet(SYSTEM_CLOCK_SPEED), 460800,
-						(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
-						UART_CONFIG_PAR_NONE));
+	//UARTConfigSetExpClk(RS485_BKP_UART_BASE, SysCtlClockGet(SYSTEM_CLOCK_SPEED), 460800,
+	//					(UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+	//					UART_CONFIG_PAR_NONE));
+    UARTConfigSetExpClk(RS485_BKP_UART_BASE, SysCtlClockGet(SYSTEM_CLOCK_SPEED), 115200,
+                      (UART_CONFIG_WLEN_8 | UART_CONFIG_STOP_ONE |
+                      UART_CONFIG_PAR_NONE));
 
 	UARTFIFOEnable(RS485_BKP_UART_BASE);
 

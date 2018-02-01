@@ -32,7 +32,7 @@
 #include "driverlib/interrupt.h"
 #include "driverlib/i2c.h"
 
-#include "board_drivers/hardware_def.h"
+#include "hardware_def.h"
 
 #include "i2c_offboard_isolated.h"
 
@@ -127,12 +127,13 @@ void isr_i2c_slave_offboard_isolated(void)
     }
 }
 
+
 uint8_t get_i2c_message()
 {
     uint8_t data[2];
-    data[0] = 0x5B;
-    read_i2c_offboard_isolated(SLAVE_ADDRESS, SINGLE_ADDRESS, 2, data);
-    return data[1];
+    data[0] = SLAVE_READ_REG_ADD;
+    read_i2c_offboard_isolated(SLAVE_ADDRESS, SINGLE_ADDRESS, 1, data);
+    return data[0];
 }
 
 void init_i2c_offboard_isolated(void)
@@ -140,7 +141,7 @@ void init_i2c_offboard_isolated(void)
 	// I2C0 configuration (EEPROM memory, IO expander e Temperature sensor.)
 	// Data rate is set to 400kbps
 	I2CMasterInitExpClk(I2C_OFFBOARD_ISO_MASTER_BASE, SysCtlClockGet(
-		                       SYSTEM_CLOCK_SPEED), true);
+		                       SYSTEM_CLOCK_SPEED), false);
 
 	//I2C enable
 	I2CMasterEnable(I2C_OFFBOARD_ISO_MASTER_BASE);

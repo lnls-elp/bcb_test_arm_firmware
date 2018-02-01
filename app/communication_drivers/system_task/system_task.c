@@ -116,7 +116,7 @@ TaskCheck(void)
 	if(ADCP_SAMPLE_AVAILABLE_REQUEST)
 	{
 	    ADCP_SAMPLE_AVAILABLE_REQUEST = 0;
-	    adcp_get_samples();
+	    //adcp_get_samples();
 	}
 
     /**********************************************
@@ -131,7 +131,7 @@ TaskCheck(void)
 	else if(SAMPLE_ADCP_REQUEST)
 	{
 	    SAMPLE_ADCP_REQUEST = 0;
-	    adcp_read();
+	    //adcp_read();
 	}
 
 	else if(PROCESS_RS485_MESS)
@@ -165,7 +165,7 @@ TaskCheck(void)
 	else if(READ_IIB)
 	{
 		READ_IIB = 0;
-		rs485_bkp_tx_handler();
+		//rs485_bkp_tx_handler();
 	}
 
     /**********************************************

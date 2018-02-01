@@ -17,7 +17,6 @@
  * @date 14/04/2015
  *
  */
-
 #include <stdint.h>
 #include <stdarg.h>
 #include <string.h>
@@ -78,7 +77,6 @@ uint8_t add485, stsdisp, stsisodcdc;
 uint32_t addIP;
 
 
-
 int main(void) {
 
 	volatile unsigned long ulLoop;
@@ -98,7 +96,7 @@ int main(void) {
 // This includes the following functions:  InitFlash();
 // The  RamfuncsLoadStart, RamfuncsLoadSize, and RamfuncsRunStart
 // symbols are created by the linker. Refer to the device .cmd file.
-    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t)&RamfuncsLoadSize);
+    memcpy(&RamfuncsRunStart, &RamfuncsLoadStart, (size_t) &RamfuncsLoadSize);
 
 // Call Flash Initialization to setup flash waitstates
 // This function must reside in RAM
@@ -117,7 +115,7 @@ int main(void) {
 
 	system_config();
 
-    //  Send boot command to allow the C28 application to begin execution
+    //Send boot command to allow the C28 application to begin execution
     //IPCMtoCBootControlSystem(CBROM_MTOC_BOOTMODE_BOOT_FROM_FLASH);
 
 	// Delay

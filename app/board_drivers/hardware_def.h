@@ -19,15 +19,13 @@
  *
  */
 
-#include <stdint.h>
-
 //#define HARDWARE_VERSION	0x20
 #define HARDWARE_VERSION	0x21
 
 #ifndef HARDWARE_DEF_H_
 #define HARDWARE_DEF_H_
 
-#define UDC_SELECT          1
+#define UDC_SELECT          0
 
 /******************************************************************************
  * GPIO for the operation LED

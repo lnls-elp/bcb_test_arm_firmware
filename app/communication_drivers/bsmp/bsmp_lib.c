@@ -34,6 +34,7 @@
 #include "driverlib/systick.h"
 
 #include "communication_drivers/i2c_offboard_isolated/i2c_offboard_isolated.h"
+#include "communication_drivers/rs485_bkp/rs485_bkp.h"
 #include "communication_drivers/system_task/system_task.h"
 #include "communication_drivers/i2c_onboard/eeprom.h"
 #include "communication_drivers/i2c_onboard/exio.h"
@@ -170,17 +171,37 @@ static struct bsmp_func disable_buzzer_t = {
 //*****************************************************************************
 //                          Send Uart Data
 //*****************************************************************************
-uint8_t uart_echo()
-{
-    return 0xAA;
-}
-
 uint8_t send_uart_data (uint8_t *input, uint8_t *output)
 {
-    uint8_t res;
-    res = uart_echo();
-    *output = res;
-    return 0;
+    if (ipc_mtoc_busy(low_priority_msg_to_reg(Turn_On)))
+    {
+        *output = 6;
+    }
+    else
+    {
+        send_ipc_lowpriority_msg(g_current_ps_id, Turn_On);
+        while ((HWREG(MTOCIPC_BASE + IPC_O_MTOCIPCFLG) &
+                low_priority_msg_to_reg(Turn_On)) &&
+                (ulTimeout<TIMEOUT_VALUE)){
+            ulTimeout++;
+        }
+
+        if(ulTimeout==TIMEOUT_VALUE){
+            *output = 5;
+        }
+
+        else{
+            *output = 0;
+        }
+    }
+    return *output;
+
+
+
+
+    //send_uart_message();
+    //*output = 0;
+    //return 0;
 }
 
 static struct bsmp_func send_uart_data_t = {
@@ -194,8 +215,8 @@ static struct bsmp_func send_uart_data_t = {
 //*****************************************************************************
 uint8_t get_uart_data (uint8_t *input, uint8_t *output)
 {
-    uint8_t res;
-    res = uart_echo();
+
+    uint8_t res = (uint8_t) g_ipc_ctom.ps_module[0].ps_status.all;
     *output = res;
     return 0;
 }
@@ -206,6 +227,38 @@ static struct bsmp_func get_uart_data_t = {
     .info.output_size = 1,       // Response: return 0 if ok
 };
 
+
+uint8_t clear_uart_buffer (uint8_t *input, uint8_t *output)
+{
+    if (ipc_mtoc_busy(low_priority_msg_to_reg(Turn_Off)))
+    {
+        *output = 6;
+    }
+    else
+    {
+        send_ipc_lowpriority_msg(g_current_ps_id, Turn_Off);
+        while ((HWREG(MTOCIPC_BASE + IPC_O_MTOCIPCFLG) &
+                low_priority_msg_to_reg(Turn_Off)) &&
+                (ulTimeout<TIMEOUT_VALUE)){
+            ulTimeout++;
+        }
+
+        if(ulTimeout==TIMEOUT_VALUE){
+            *output = 5;
+        }
+
+        else{
+            *output = 0;
+        }
+    }
+    return *output;
+}
+
+static struct bsmp_func clear_uart_buffer_t = {
+    .func_p           = clear_uart_buffer,
+    .info.input_size  = 0,       // Nothing is read from the input parameter
+    .info.output_size = 1,       // Response: return 0 if ok
+};
 
 //*****************************************************************************
 //                          Send CAN Data
@@ -264,7 +317,7 @@ uint8_t get_i2c_data (uint8_t *input, uint8_t *output)
 static struct bsmp_func get_i2c_data_t = {
     .func_p           = get_i2c_data,
     .info.input_size  = 0,       // Nothing is read from the input parameter
-    .info.output_size = 1,       // Response: return 1 if ok
+    .info.output_size = 1,       // Response: return 0 if ok
 };
 
 //*****************************************************************************
@@ -306,9 +359,10 @@ void bsmp_init(uint8_t server)
     bsmp_register_function(&bsmp[server], &disable_buzzer_t);       // ID 4
     bsmp_register_function(&bsmp[server], &send_uart_data_t);       // ID 5
     bsmp_register_function(&bsmp[server], &get_uart_data_t);        // ID 6
-    bsmp_register_function(&bsmp[server], &send_can_data_t);        // ID 7
-    bsmp_register_function(&bsmp[server], &get_can_data_t);         // ID 8
-    bsmp_register_function(&bsmp[server], &get_i2c_data_t);         // ID 9
+    bsmp_register_function(&bsmp[server], &clear_uart_buffer_t);    // ID 7
+    bsmp_register_function(&bsmp[server], &send_can_data_t);        // ID 8
+    bsmp_register_function(&bsmp[server], &get_can_data_t);         // ID 9
+    bsmp_register_function(&bsmp[server], &get_i2c_data_t);         // ID 10
 
     //*************************************************************************
     //                      BSMP Variable Register
