@@ -25,7 +25,7 @@
 #ifndef HARDWARE_DEF_H_
 #define HARDWARE_DEF_H_
 
-#define UDC_SELECT          0
+#define UDC_SELECT          1
 
 /******************************************************************************
  * GPIO for the operation LED

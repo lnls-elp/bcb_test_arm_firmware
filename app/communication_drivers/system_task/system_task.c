@@ -223,7 +223,7 @@ TaskCheck(void)
                 g_ipc_ctom.ps_module[3].ps_status.bit.state == Interlock )
             {
                 led_itlk_ctrl(1);
-                sound_sel_ctrl(1);
+                //sound_sel_ctrl(1);
             }
             LedCtrl = 1;
         }

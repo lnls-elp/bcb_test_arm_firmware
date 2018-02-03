@@ -160,7 +160,7 @@ void system_init(void)
 
 	rtc_init();
 
-	adcp_init();
+	//adcp_init();
 
 	if(HARDWARE_VERSION == 0x20)
 	{

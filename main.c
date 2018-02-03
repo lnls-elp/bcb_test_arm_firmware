@@ -66,8 +66,8 @@ extern unsigned long RamfuncsRunStart;
 extern unsigned long RamfuncsLoadSize;
 
 
-#define M3_MASTER 0
-#define C28_MASTER 1
+#define M3_MASTER       0
+#define C28_MASTER      1
 
 uint8_t read_rtc, read_rtc_status;
 
@@ -77,7 +77,7 @@ uint8_t add485, stsdisp, stsisodcdc;
 uint32_t addIP;
 
 
-int main(void) {
+                                                                                                                                                                                                                                                                                     int main(void) {
 
 	volatile unsigned long ulLoop;
 

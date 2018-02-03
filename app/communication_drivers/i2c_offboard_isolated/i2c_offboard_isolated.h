@@ -26,8 +26,8 @@
 #define	SINGLE_ADDRESS	0x01
 #define	DOUBLE_ADDRESS	0x02
 
-#define SLAVE_ADDRESS           0x5A
-#define SLAVE_READ_REG_ADD      0x5B
+#define SLAVE_ADDRESS           0x3c
+#define SLAVE_READ_REG_ADD      0x5c
 
 extern void init_i2c_offboard_isolated(void);
 extern void init_i2c_slave_offboard_isolated(void);

@@ -57,10 +57,6 @@ volatile unsigned long ulTimeout;
 bsmp_server_t bsmp[NUMBER_OF_BSMP_SERVERS];
 uint16_t TIMEOUT_VALUE = 20;
 
-uint8_t i2c_echo(){
-    return 0xAA;
-}
-
 //*****************************************************************************
 //                  Clear BCB POF Transmitters
 //*****************************************************************************
