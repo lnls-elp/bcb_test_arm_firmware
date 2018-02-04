@@ -90,7 +90,7 @@ volatile bool g_bRXFlag = 0;
 //*****************************************************************************
 volatile bool g_bErrFlag = 0;
 
-volatile uint8_t data_echo_can;
+static volatile uint8_t data_echo_can;
 
 //Rx
 tCANMsgObject sCANMessageRx;
@@ -99,7 +99,6 @@ uint8_t pui8MsgDataRx[1];
 //Tx
 tCANMsgObject sCANMessageTx;
 uint8_t pui8MsgDataTx[1];
-
 
 //*****************************************************************************
 // This function is the interrupt handler for the CAN peripheral.  It checks
@@ -151,16 +150,16 @@ void can_int_handler(void)
         // Set flag to indicate received message is pending for this message
         // object.
         //
-        g_bRXFlag = 1;
+        //g_bRXFlag = 1;
 
-        #if UDC_SELECT
+        //#if UDC_SELECT
         // Indicate new message that needs to be processed
-        TaskSetNew(PROCESS_CAN_MESSAGE);
-        #else
+        //TaskSetNew(PROCESS_CAN_MESSAGE);
+        //#else
         sCANMessageRx.pucMsgData = pui8MsgDataRx;
         CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
         data_echo_can = pui8MsgDataRx[0];
-        #endif
+        //#endif
 
         //
         // Since a message was received, clear any error flags.
@@ -174,70 +173,72 @@ void can_int_handler(void)
     //
     else
     {
+        CANIntClear(CAN0_BASE, 1);
         //
         // Spurious interrupt handling can go here.
         //
     }
 }
 
-#if UDC_SELECT
-void can_check(void)
-{
-    //
-    // If the flag for message object 1 is set, that means that the RX
-    // interrupt occurred and there is a message ready to be read from
-    // this CAN message object.
-    //
-    if(g_bRXFlag)
-    {
-        sCANMessageRx.pucMsgData = pui8MsgDataRx;
-        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
 
-        //  Echo CAN message
-        //for(i = 0; i < 8; i++)
-        //{
-        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
-        //}
-
-        g_bRXFlag = 0;
-
-        SysCtlDelay(10000);
-        pui8MsgDataTx[0] = pui8MsgDataRx[0];
-        sCANMessageTx.pucMsgData = pui8MsgDataTx;
-        CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
-
-    }
-}
-#else
-
-void can_check(void)
-{
-
-    //
-    // If the flag for message object 1 is set, that means that the RX
-    // interrupt occurred and there is a message ready to be read from
-    // this CAN message object.
-    //
-    if(g_bRXFlag)
-    {
-        sCANMessageRx.pucMsgData = pui8MsgDataRx;
-        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
-
-        //  Echo CAN message
-        //for(i = 0; i < 8; i++)
-        //{
-        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
-        //}
-
-        data_echo_can = pui8MsgDataRx[0];
-
-        //sCANMessageTx.pucMsgData = pui8MsgDataTx;
-        //CANMessageSet(CAN0_BASE, 1, &sCANMessageTx, MSG_OBJ_TYPE_TX);
-
-        g_bRXFlag = 0;
-    }
-}
-#endif
+//#if UDC_SELECT
+//void can_check(void)
+//{
+//    //
+//    // If the flag for message object 1 is set, that means that the RX
+//    // interrupt occurred and there is a message ready to be read from
+//    // this CAN message object.
+//    //
+//    if(g_bRXFlag)
+//    {
+//        sCANMessageRx.pucMsgData = pui8MsgDataRx;
+//        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
+//
+//        //  Echo CAN message
+//        //for(i = 0; i < 8; i++)
+//        //{
+//        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
+//        //}
+//
+//        g_bRXFlag = 0;
+//
+//        //SysCtlDelay(10000);
+//        //pui8MsgDataTx[0] = pui8MsgDataRx[0];
+//        //sCANMessageTx.pucMsgData = pui8MsgDataTx;
+//        //CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
+//
+//    }
+//}
+//#else
+//
+//void can_check(void)
+//{
+//
+//    //
+//    // If the flag for message object 1 is set, that means that the RX
+//    // interrupt occurred and there is a message ready to be read from
+//    // this CAN message object.
+//    //
+//    if(g_bRXFlag)
+//    {
+//        sCANMessageRx.pucMsgData = pui8MsgDataRx;
+//        CANMessageGet(CAN0_BASE, 1, &sCANMessageRx, 0);
+//
+//        //  Echo CAN message
+//        //for(i = 0; i < 8; i++)
+//        //{
+//        //    pui8MsgDataTx[i] = pui8MsgDataRx[i];
+//        //}
+//
+//        data_echo_can = pui8MsgDataRx[0];
+//
+//        //sCANMessageTx.pucMsgData = pui8MsgDataTx;
+//        //CANMessageSet(CAN0_BASE, 1, &sCANMessageTx, MSG_OBJ_TYPE_TX);
+//
+//        g_bRXFlag = 0;
+//    }
+//}
+//#endif
 
 void send_can_message(void)
 {
@@ -245,7 +246,6 @@ void send_can_message(void)
 
     pui8MsgDataRx[0] = 0;
     pui8MsgDataTx[0] = 0xAA;
-    data_echo_can = 0;
 
     CANMessageSet(CAN0_BASE, 2, &sCANMessageTx, MSG_OBJ_TYPE_TX);
 
@@ -261,12 +261,12 @@ void send_can_message(void)
 
 void clear_can_buffer()
 {
-    pui8MsgDataRx[0] = 0;
+    data_echo_can = 0;
 }
 
 uint8_t get_can_message()
 {
-    return pui8MsgDataRx[0];
+    return data_echo_can;
 }
 
 void init_can_bkp(void)
@@ -291,9 +291,12 @@ void init_can_bkp(void)
     // Register interrupt handler in RAM vector table
     IntRegister(INT_CAN0INT0, can_int_handler);
 
+    #if UDC_SELECT
     // Enable the CAN interrupt on the processor (NVIC).
     IntEnable(INT_CAN0INT0);
+    #endif
     //IntMasterEnable();
+
 
     // Enable test mode and select external loopback
     //HWREG(CAN0_BASE + CAN_O_CTL) |= CAN_CTL_TEST;
@@ -350,7 +353,7 @@ void init_can_bkp(void)
     // Once loaded the CAN will receive any messages with this CAN ID into
     // this message object, and an interrupt will occur.
     //
-    CANMessageSet(CAN0_BASE, 1, &sCANMessageRx, MSG_OBJ_TYPE_RX);
+    //CANMessageSet(CAN0_BASE, 1, &sCANMessageRx, MSG_OBJ_TYPE_RX);
 
     //
     // Initialize message object 1 to be able to send CAN message 1.  This
@@ -365,4 +368,3 @@ void init_can_bkp(void)
     #endif
 
 }
-

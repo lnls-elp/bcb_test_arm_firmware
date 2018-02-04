@@ -281,13 +281,11 @@ static struct bsmp_func send_can_data_t = {
 //*****************************************************************************
 uint8_t get_can_data (uint8_t *input, uint8_t *output)
 {
-
-    uint8_t data;
-
-    data = get_can_message();
+    uint8_t can_data;
+    can_data = get_can_message();
     clear_can_buffer();
 
-    *output = data;
+    *output = can_data;
 
     return 0;
 }
