@@ -192,12 +192,6 @@ uint8_t send_uart_data (uint8_t *input, uint8_t *output)
     }
     return *output;
 
-
-
-
-    //send_uart_message();
-    //*output = 0;
-    //return 0;
 }
 
 static struct bsmp_func send_uart_data_t = {
